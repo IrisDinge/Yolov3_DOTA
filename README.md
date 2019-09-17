@@ -10,6 +10,6 @@ and my basical code is inspired by my tutor Daniel and TencentYoutuResearch, tha
 
 THis project contains a lot of stupid script for handleing with raw data.
 
-If u have any question, pls no hesitation to contact with me, in English, in Chinese, in German. Maybe i cann#t give u answer, maybe inspire
+If u have any question, pls no hesitation to contact with me, in English, in Chinese, in German. Maybe i cann't give u answer, maybe inspire
 each other instead of?
 
