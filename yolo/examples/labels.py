@@ -31,7 +31,7 @@ def identify(xml_file):
     root = ET.parse(xml_file).getroot()
     folder = root.find('folder').text
     filename = root.find('filename').text 
-    return f'{root_dir}/{folder}/JPEGImages/{filename}'
+    return f'{root_dir}/{folder}/PNGImages/{filename}'
 
 
 if __name__ == '__main__':
