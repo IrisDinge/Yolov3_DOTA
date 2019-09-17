@@ -1,0 +1,57 @@
+output_root: "outputs"
+output_version: "baseline"
+backup_name: "weights"
+log_name: "logs"
+
+labels: ["small-vehicle", "large-vehicle", "plane", "harbor", "ship", "helicopter", "bridge", "swimming-pool", "baseball-diamond", "roundabout", "tennis-court", "storage-tank", "soccer-ball-field", "basketball-court", "ground-track-field"]
+
+data_root_dir: "/home/dingjin/ObjectDetection-OneStageDet/yolo/dota/onedet_cache"
+
+train:
+    dataset: "train"
+    stdout: True
+    gpus: "0"
+    nworkers: 16
+    pin_mem: True
+
+    momentum: 0.9
+    decay: 0.0005
+
+    clear: False
+
+    warmup_lr: 0.0001
+    lr_steps: [400,700,900,1000, 40000,60000,80000, 120000,140000]
+    lr_rates: [0.0005,0.001,0.002,0.02, 0.002,0.0002,0.001, 0.0001, 0.00001]
+    max_batches: 160200
+    resize_interval: 10
+
+    backup_interval: 200
+    backup_steps: [1000]
+    backup_rates: [10000]
+
+    input_shape: [608, 608]
+    batch_size: 16
+    mini_batch_size: 8
+    weights: ~
+
+test:
+    dataset: "test"
+    stdout: True
+    gpus: "7"
+    nworkers: 8
+    pin_mem: True
+
+    input_shape: [608, 608]
+    batch_size: 16
+    weights: "outputs/Mobilenetv2/baseline/weights/backup.pt"
+
+    conf_thresh: 0.005
+    nms_thresh: 0.45
+
+    results: "results"
+
+speed:
+    gpus: "5"
+    batch_size: 1
+    max_iters: 200
+    input_shape: [416, 416]
