@@ -50,8 +50,8 @@ class PascalVocAnnotation(Annotation):
         y4 = float(box.find('y4').text)
         self.x_top_left = min(min(min(x1, x2), x3), x4)
         self.y_top_left = min(min(min(y1, y2), y3), y4)
-        self.width = max(max(max(x1, x2), x3), x4)
-        self.height = max(max(max(y1, y2), y3), y4)
+        self.width = max(max(max(x1, x2), x3), x4) - min(min(min(x1, x2), x3), x4)
+        self.height = max(max(max(y1, y2), y3), y4)- min(min(min(y1, y2), y3), y4)
 
         self.object_id = 0
         self.lost = None
