@@ -22,7 +22,7 @@ class PascalVocAnnotation(Annotation):
         string += f'\t<name>{self.class_label}</name>\n'
         string += '\t<pose>Unspecified</pose>\n'
         string += f'\t<truncated>{int(self.occluded)}</truncated>\n'
-        #string += f'\t<difficult>{int(self.difficult)}</difficult>\n'
+        string += f'\t<difficult>{int(self.difficult)}</difficult>\n'
         string += '\t<bndbox>\n'
         string += f'\t\t<xmin>{self.x_top_left}</xmin>\n'
         string += f'\t\t<ymin>{self.y_top_left}</ymin>\n'
@@ -37,21 +37,13 @@ class PascalVocAnnotation(Annotation):
         """ parse a Pascal Voc xml annotation string """
         self.class_label = xml_obj.find('name').text
         self.occluded = xml_obj.find('truncated').text == '1'
-        #self.difficult = xml_obj.find('difficult').text == '1'
+        self.difficult = xml_obj.find('difficult').text == '1'
 
         box = xml_obj.find('bndbox')
-        x1 = float(box.find('x1').text)
-        y1 = float(box.find('y1').text)
-        x2 = float(box.find('x2').text)
-        y2 = float(box.find('y2').text)
-        x3 = float(box.find('x3').text)
-        y3 = float(box.find('y3').text)
-        x4 = float(box.find('x4').text)
-        y4 = float(box.find('y4').text)
-        self.x_top_left = min(min(min(x1, x2), x3), x4)
-        self.y_top_left = min(min(min(y1, y2), y3), y4)
-        self.width = max(max(max(x1, x2), x3), x4) - min(min(min(x1, x2), x3), x4)
-        self.height = max(max(max(y1, y2), y3), y4)- min(min(min(y1, y2), y3), y4)
+        self.x_top_left = float(box.find('xmin').text)
+        self.y_top_left = float(box.find('ymin').text)
+        self.width = float(float(box.find('xmax').text) - self.x_top_left + 1)
+        self.height = float(float(box.find('ymax').text) - self.y_top_left + 1)
 
         self.object_id = 0
         self.lost = None
