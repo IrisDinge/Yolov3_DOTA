@@ -58,7 +58,7 @@ class Mobilenetv2(nn.Module):
         outputs = []
 
         stage4 = middle_feats[2]
-        out1 = self.layer[0](stage4)
+        out1 = self.layers[0](stage4)
         stage5_reorg = self.layers[1](stage4)
 
         stage5 = middle_feats[1]
