@@ -11,7 +11,7 @@ __all__ = ['Mobilenetv2']
 
 
 class Mobilenetv2(YoloABC):
-    def __init__(self, num_classes=15, weights_file=None, input_channels=3,
+    def __init__(self, num_classes=16, weights_file=None,
                  anchors=[(10, 13), (16, 30), (33, 23), (30, 61), (62, 45), (59, 119), (116, 90), (156, 198),
                           (373, 326)],
                  anchors_mask=[(6, 7, 8), (3, 4, 5), (0, 1, 2)], train_flag=1, clear=False, test_args=None):
@@ -32,8 +32,8 @@ class Mobilenetv2(YoloABC):
         num_anchors_list = [len(x) for x in anchors_mask]
         in_channels_list = [512, 256, 128]
 
-        self.backbone = backbone.Darknet53()
-        self.head = head.Yolov3(num_classes, in_channels_list, num_anchors_list)
+        self.backbone = backbone.Mobilenetv2()
+        self.head = head.Mobilenetv2(num_anchors_list, num_classes)
 
         if weights_file is not None:
             self.load_weights(weights_file, clear)
