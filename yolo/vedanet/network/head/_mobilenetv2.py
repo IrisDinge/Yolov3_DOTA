@@ -9,16 +9,15 @@ __all__ = ['Mobilenetv2']
 
 
 class Mobilenetv2(nn.Module):
-    def __init__(self, num_anchors, num_classes, input_channels=48):
+    def __init__(self, num_classes, in_channels_list, num_anchors_list):
         """ Network initialisation
-
         """
         super().__init__()
         layer_list = [
             # Sequence 0 : input = large prediction
             OrderedDict([
                 ('1_convbatch', vn_layer.Conv2dBatchReLU(32, 64, 3, 1)),
-                ('2_conv', nn.Conv2d(1280, num_anchors*(5 + num_classes), 1, 1, 0)),  # bigger?
+                ('2_conv', nn.Conv2d(in_channels_list[0], num_anchors_list[0]*(5 + num_classes), 1, 1, 0)),
             ]),
 
             # Sequence 1 : input = Sequence 0 divide
@@ -30,7 +29,7 @@ class Mobilenetv2(nn.Module):
             # Sequence 2 : input = Sequence 1 and middle
             OrderedDict([
                 ('5_convbatch',    vn_layer.Conv2dBatchReLU(96, 24, 1, 1)),
-                ('6_conv',        nn.Conv2d(384, num_anchors*(5 + num_classes), 1, 1, 0)),  # bigger?
+                ('6_conv',        nn.Conv2d(in_channels_list[1], num_anchors_list[1]*(5 + num_classes), 1, 1, 0)),
                 ]),
 
             # Sequence 3: input = mid
@@ -42,14 +41,14 @@ class Mobilenetv2(nn.Module):
             # Sequence 4:  inputs = Sequence3 + small
             OrderedDict([
                 ('9_convbatch',     vn_layer.Conv2dBatchReLU((4*24)+320, 320, 3, 1)),
-                ('10_conv',          nn.Conv2d(128, num_anchors*(5+num_classes), 1, 1, 0)),
+                ('10_conv',          nn.Conv2d(in_channels_list[2], num_anchors_list[2]*(5+num_classes), 1, 1, 0)),
                 ]),
             ]
         self.layers = nn.ModuleList([nn.Sequential(layer_dict) for layer_dict in layer_list])
 
-    def forward(self, middile_feats):
+    def forward(self, middle_feats):
         '''
-        :param middile_feats: stage6, stage5, stage4
+        :param middle_feats: stage6, stage5, stage4
         :return:
                                      input
         :Mobilenetv2    small_scale 56^2x24     6,32,3,2
@@ -58,15 +57,15 @@ class Mobilenetv2(nn.Module):
         '''
         outputs = []
 
-        stage4 = middile_feats[2]
+        stage4 = middle_feats[2]
         out1 = self.layer[0](stage4)
         stage5_reorg = self.layers[1](stage4)
 
-        stage5 = middile_feats[1]
-        out2 = middile_feats[2](torch.cat((stage5_reorg, stage5), 1))
-        stage6_reorg = self.layers[3](middile_feats[1])
+        stage5 = middle_feats[1]
+        out2 = middle_feats[2](torch.cat((stage5_reorg, stage5), 1))
+        stage6_reorg = self.layers[3](middle_feats[1])
 
-        stage6 = middile_feats[0]
+        stage6 = middle_feats[0]
         out3 = self.layers[4](torch.cat((stage6_reorg,stage6), 1))
 
         features = [out3, out2, out1]
