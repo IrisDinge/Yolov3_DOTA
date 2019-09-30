@@ -654,7 +654,7 @@ class SPPLayer(torch.nn.Module):
 
 
 class DeformConv2(nn.Module):
-    def __init__(self, inc, outc, kernel_size=3, padding=1, stride=1, bias=None, modulation=False):
+    def __init__(self, in_channels, out_channels, kernel_size=3, padding=1, stride=1, bias=None, modulation=False):
         """
         Args:
             modulation (bool, optional): If True, Modulated Defomable Convolution (Deformable ConvNets v2).
@@ -664,15 +664,15 @@ class DeformConv2(nn.Module):
         self.padding = padding
         self.stride = stride
         self.zero_padding = nn.ZeroPad2d(padding)
-        self.conv = nn.Conv2d(inc, outc, kernel_size=kernel_size, stride=kernel_size, bias=bias)
+        self.conv = nn.Conv2d(in_channels, out_channels, kernel_size=kernel_size, stride=kernel_size, bias=bias)
 
-        self.p_conv = nn.Conv2d(inc, 2*kernel_size*kernel_size, kernel_size=3, padding=1, stride=stride)
+        self.p_conv = nn.Conv2d(in_channels, 2*kernel_size*kernel_size, kernel_size=3, padding=1, stride=stride)
         nn.init.constant_(self.p_conv.weight, 0)
         self.p_conv.register_backward_hook(self._set_lr)
 
         self.modulation = modulation
         if modulation:
-            self.m_conv = nn.Conv2d(inc, kernel_size*kernel_size, kernel_size=3, padding=1, stride=stride)
+            self.m_conv = nn.Conv2d(in_channels, kernel_size*kernel_size, kernel_size=3, padding=1, stride=stride)
             nn.init.constant_(self.m_conv.weight, 0)
             self.m_conv.register_backward_hook(self._set_lr)
 
