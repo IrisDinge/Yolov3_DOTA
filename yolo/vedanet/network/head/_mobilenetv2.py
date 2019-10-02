@@ -17,7 +17,7 @@ class Mobilenetv2(nn.Module):
             # Sequence 0 : input = large prediction
             OrderedDict([
                 ('1_convbatch', vn_layer.Conv2dBatchReLU(32, 64, 3, 1)),
-                ('2_conv', nn.Conv2d(in_channels_list[0], num_anchors_list[0]*(5 + num_classes), 1, 1, 0)),
+                ('2_conv', nn.Conv2d(64, num_anchors_list[0]*(5 + num_classes), 1, 1, 0)),
             ]),
 
             # Sequence 1 : input = Sequence 0 divide
@@ -28,8 +28,8 @@ class Mobilenetv2(nn.Module):
 
             # Sequence 2 : input = Sequence 1 and middle
             OrderedDict([
-                ('5_convbatch',    vn_layer.Conv2dBatchReLU(96, 24, 1, 1)),
-                ('6_conv',        nn.Conv2d(in_channels_list[1], num_anchors_list[1]*(5 + num_classes), 1, 1, 0)),
+                ('5_convbatch',    vn_layer.Conv2dBatchReLU((4*8) + 96, 96, 3, 1)),
+                ('6_conv',        nn.Conv2d(96, num_anchors_list[1]*(5 + num_classes), 1, 1, 0)),
                 ]),
 
             # Sequence 3: input = mid
@@ -41,7 +41,7 @@ class Mobilenetv2(nn.Module):
             # Sequence 4:  inputs = Sequence3 + small
             OrderedDict([
                 ('9_convbatch',     vn_layer.Conv2dBatchReLU((4*24)+320, 320, 3, 1)),
-                ('10_conv',          nn.Conv2d(in_channels_list[2], num_anchors_list[2]*(5+num_classes), 1, 1, 0)),
+                ('10_conv',          nn.Conv2d(320, num_anchors_list[2]*(5+num_classes), 1, 1, 0)),
                 ]),
             ]
         self.layers = nn.ModuleList([nn.Sequential(layer_dict) for layer_dict in layer_list])
@@ -62,11 +62,10 @@ class Mobilenetv2(nn.Module):
         stage5_reorg = self.layers[1](stage4)
 
         stage5 = middle_feats[1]
-        out2 = middle_feats[2](torch.cat((stage5_reorg, stage5), 1))
+        out2 = self.layers[2](torch.cat((stage5_reorg, stage5), 1))
         stage6_reorg = self.layers[3](middle_feats[1])
 
         stage6 = middle_feats[0]
-        out3 = self.layers[4](torch.cat((stage6_reorg,stage6), 1))
-
+        out3 = self.layers[4](torch.cat((stage6_reorg, stage6), 1))
         features = [out3, out2, out1]
         return features
