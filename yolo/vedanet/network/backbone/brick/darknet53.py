@@ -166,3 +166,54 @@ class DCNv2(nn.Module):
         x = self.fc(x)
 
         return x
+
+
+'''
+DBL = con + BN + LeakyReLU
+a.k.a vn_layer.COnv2dBatchLeaky
+'''
+
+
+class DCNv2Block(nn.Module):
+    '''
+
+    Res_Unit = ---> DBL + DBL ---> Add ----
+                |                   ^
+                |___________________|
+
+    '''
+    custom_layers = ()
+
+    def __init__(self, nchannels):
+        super().__init__()
+        self.features = nn.Sequential(
+            vn_layer.DeformConv2(nchannels, int(nchannels / 2), 1, 1),
+            nn.BatchNorm2d(self.out_channels),
+            nn.LeakyReLU(self.leaky_slope, inplace=True),
+            vn_layer.DeformConv2(int(nchannels / 2), nchannels, 3, 1),
+            nn.BatchNorm2d(self.out_channels),
+            nn.LeakyReLU(self.leaky_slope, inplace=True),
+        )
+
+    def forward(self, data):
+        return data + self.features(data)
+
+
+class DNCv2(nn.Module):
+    '''
+
+    Resblock_body = zero padding + DBL + Res_Unit * N
+
+    '''
+    custom_layers = (StageBlock, StageBlock.custom_layers)
+
+    def __init__(self, nchannels, nblocks, stride=2):
+        super().__init__()
+        blocks = []
+        blocks.append(vn_layer.Conv2dBatchLeaky(nchannels, 2 * nchannels, 3, stride))
+        for ii in range(nblocks - 1):
+            blocks.append(StageBlock(2 * nchannels))
+        self.features = nn.Sequential(*blocks)
+
+    def forward(self, data):
+        return self.features(data)
