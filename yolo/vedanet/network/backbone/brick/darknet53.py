@@ -5,6 +5,7 @@ import torch.nn as nn
 
 from ... import layer as vn_layer
 
+
 '''
 DBL = con + BN + LeakyReLU
 a.k.a vn_layer.COnv2dBatchLeaky
@@ -40,7 +41,7 @@ class Stage(nn.Module):
     def __init__(self, nchannels, nblocks, stride=2):
         super().__init__()
         blocks = []
-        blocks.append(vn_layer.Conv2dBatchLeaky(nchannels, 2*nchannels, 3, stride))
+        blocks.append(vn_layer.DeformConv2(nchannels, 2*nchannels, 3, stride))
         for ii in range(nblocks - 1):
             blocks.append(StageBlock(2*nchannels))
         self.features = nn.Sequential(*blocks)
@@ -140,6 +141,7 @@ class DCNv2(nn.Module):
     
 
     #Deformable Convolutional Networks
+    how to replace regular convolution layers
 
     
 
@@ -180,8 +182,8 @@ class DCNv2Block(nn.Module):
     '''
 
     Res_Unit = ---> (DCNv2+BN+LeakyReLU) + (DCNv2+BN+LeakyReLU) ---> Add ----
-                |                   ^
-                |___________________|
+                |                                                     ^
+                |_____________________________________________________|
 
     '''
     custom_layers = ()
@@ -212,10 +214,12 @@ class DCNv2(nn.Module):
     def __init__(self, nchannels, nblocks, stride=2):
         super().__init__()
         blocks = []
-        blocks.append(vn_layer.DeformConv2(nchannels, 2 * nchannels, 3, stride), nn.BatchNorm2d)
+        blocks.append(vn_layer.DCNv22dBatchReLU(nchannels, 2 * nchannels, 3, stride))
         for ii in range(nblocks - 1):
-            blocks.append(StageBlock(2 * nchannels))
+            blocks.append(DCNv2Block(2 * nchannels))
         self.features = nn.Sequential(*blocks)
 
     def forward(self, data):
         return self.features(data)
+
+
