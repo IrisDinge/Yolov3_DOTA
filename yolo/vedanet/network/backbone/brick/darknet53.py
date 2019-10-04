@@ -134,14 +134,14 @@ class SPPBody(nn.Module):
         x = self.feature(data)
         return x
     
-    
+''' 
 class DCNv2(nn.Module):
 
-    '''
+    
 
-    Deformable Convolutional Networks
+    #Deformable Convolutional Networks
 
-    '''
+    
 
 
     def __init__(self):
@@ -166,6 +166,8 @@ class DCNv2(nn.Module):
         x = self.fc(x)
 
         return x
+'''
+
 
 
 '''
@@ -177,7 +179,7 @@ a.k.a vn_layer.COnv2dBatchLeaky
 class DCNv2Block(nn.Module):
     '''
 
-    Res_Unit = ---> DBL + DBL ---> Add ----
+    Res_Unit = ---> (DCNv2+BN+LeakyReLU) + (DCNv2+BN+LeakyReLU) ---> Add ----
                 |                   ^
                 |___________________|
 
@@ -199,18 +201,18 @@ class DCNv2Block(nn.Module):
         return data + self.features(data)
 
 
-class DNCv2(nn.Module):
+class DCNv2(nn.Module):
     '''
 
-    Resblock_body = zero padding + DBL + Res_Unit * N
+    Resblock_body = zero padding + (DCNv2+BN+LeakyReLU) + Res_Unit * N
 
     '''
-    custom_layers = (StageBlock, StageBlock.custom_layers)
+    custom_layers = (DCNv2Block, DCNv2Block.custom_layers)
 
     def __init__(self, nchannels, nblocks, stride=2):
         super().__init__()
         blocks = []
-        blocks.append(vn_layer.Conv2dBatchLeaky(nchannels, 2 * nchannels, 3, stride))
+        blocks.append(vn_layer.DeformConv2(nchannels, 2 * nchannels, 3, stride), nn.BatchNorm2d)
         for ii in range(nblocks - 1):
             blocks.append(StageBlock(2 * nchannels))
         self.features = nn.Sequential(*blocks)
