@@ -9,12 +9,13 @@ import logging as log
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from . import _deformableCNv2 as dcnv2
 
 
 __all__ = ['Conv2dBatchLeaky', 'Conv2dBatch', 'GlobalAvgPool2d', 'PaddedMaxPool2d', 'Reorg', 'SELayer',
             'CReLU', 'Scale', 'ScaleReLU', 'L2Norm', 'Conv2dL2NormLeaky', 'PPReLU', 'Conv2dBatchPPReLU',
             'Conv2dBatchPReLU', 'Conv2dBatchPLU', 'Conv2dBatchELU', 'Conv2dBatchSELU',
-            'Shuffle', 'Conv2dBatchReLU', 'SPPLayer', 'DeformConv2']
+            'Shuffle', 'Conv2dBatchReLU', 'SPPLayer', 'DeformConv2', 'DCNv22dBatchReLU']
 
 
 class Conv2dBatchLeaky(nn.Module):
@@ -654,6 +655,7 @@ class SPPLayer(torch.nn.Module):
 
 
 class DeformConv2(nn.Module):
+
     def __init__(self, in_channels, out_channels, kernel_size=3, padding=1, stride=1, bias=None, modulation=False):
         """
         Args:
@@ -792,3 +794,21 @@ class DeformConv2(nn.Module):
         x_offset = x_offset.contiguous().view(b, c, h*ks, w*ks)
 
         return x_offset
+
+class DCNv22dBatchReLU(nn.Module):
+    def __init__(self, in_channels, out_channels, kernel_size, stride):
+        super(DCNv22dBatchReLU, self).__init__()
+
+        # Parameters
+        self.in_channels = in_channels
+        self.out_channels = out_channels
+        self.kernel_size = kernel_size
+        self.stride = stride
+
+        self.layers = dcnv2.deformableCNv2
+
+    def forward(self, x):
+        x = self.layers(x)
+        return x
+
+
