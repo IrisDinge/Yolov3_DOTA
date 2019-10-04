@@ -10,3 +10,4 @@
 """
 
 from ._darknet import *
+from ._deformableCNv2 import *
