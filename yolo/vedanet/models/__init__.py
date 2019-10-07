@@ -9,3 +9,5 @@ from ._region_shufflenetv2 import *
 from ._region_squeezenext import *
 from ._region_xception import *
 from ._region_light_xception import *
+from ._mobilenetv2 import *
+from ._yolov3SPP import *
