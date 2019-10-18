@@ -112,6 +112,8 @@ class SPPBody(nn.Module):
 
     '''
 
+
+
     custom_layers = ()
 
     def __init__(self, nchannels, first_head=False):
@@ -121,15 +123,32 @@ class SPPBody(nn.Module):
         else:
             half_nchannels = int(nchannels / 3)
         in_nchannels = 2 * half_nchannels
+
+        '''
+        def calc_auto(num, channel):
+            lst = [5, 9, 13]
+            return sum(map(lambda x: x ** 2, lst[:num])) * channel
+        '''
+
+        layer1 = vn_layer.Conv2dBatchLeaky(nchannels, half_nchannels, 1, 1)
+        layer2 = vn_layer.Conv2dBatchLeaky(half_nchannels, in_nchannels, 3, 1)
+        layer3 = vn_layer.Conv2dBatchLeaky(in_nchannels, half_nchannels, 1, 1)
+        layer4 = vn_layer.Conv2dBatchLeaky(half_nchannels, in_nchannels, 3, 1)
+        layer5 = vn_layer.Conv2dBatchLeaky(in_nchannels, half_nchannels, 1, 1)
         layers = [
-            vn_layer.Conv2dBatchLeaky(nchannels, half_nchannels, 1, 1),
-            vn_layer.Conv2dBatchLeaky(half_nchannels, in_nchannels, 3, 1),
-            vn_layer.Conv2dBatchLeaky(in_nchannels, half_nchannels, 1, 1),
-            vn_layer.SPPLayers(3, pool_type='max_pool'),  # num_level=3
-            vn_layer.Conv2dBatchLeaky(half_nchannels, in_nchannels, 3, 1),
-            vn_layer.Conv2dBatchLeaky(in_nchannels, half_nchannels, 1, 1)
+            layer1,
+            layer2,
+            layer3,
+            
+            
+            layer3,
+            layer4,
+            layer5
         ]
+
         self.feature = nn.Sequential(*layers)
+
+
 
     def forward(self, data):
         x = self.feature(data)
@@ -138,43 +157,43 @@ class SPPBody(nn.Module):
 
 
 
+
 '''
 DBL = con + BN + LeakyReLU
-a.k.a vn_layer.COnv2dBatchLeaky
+a.k.a vn_layer.Conv2dBatchLeaky
 '''
 
 
 class DCNv2Block(nn.Module):
     '''
 
-    Res_Unit = ---> DBL_DCN(Conv2d+BN+LeakyReLU) + DBL_DCN(COnv2d+BN+LeakyReLU)---> Add ----
-                |                                                                    ^
-                |____________________________________________________________________|
+    Res_Unit = ---> DBL + DBL ---> Add ----
+                |                   ^
+                |___________________|
 
     '''
     custom_layers = ()
 
     def __init__(self, nchannels):
-        super().__init__()
+        super(DCNv2Block,self).__init__()
         self.features = nn.Sequential(
-            vn_layer.DeformConv2(nchannels, int(nchannels / 2), 1, 1),
-            nn.BatchNorm2d(self.out_channels),
-            nn.LeakyReLU(self.leaky_slope, inplace=True),
-            vn_layer.DeformConv2(int(nchannels / 2), nchannels, 3, 1),
-            nn.BatchNorm2d(self.out_channels),
-            nn.LeakyReLU(self.leaky_slope, inplace=True),
+            vn_layer.ConvNet(),
+            nn.LeakyReLU(0.1),
+            vn_layer.ConvNet(),
+            nn.LeakyReLU(0.1)
         )
 
     def forward(self, data):
         return data + self.features(data)
 
 
-class DNCv2(nn.Module):
+
+class DCNv2(nn.Module):
     '''
 
     Resblock_body = zero padding + DBL + Res_Unit * N
 
-    THere are 8 Res_Unit, so far we only replace 2 conv2d of DBL in the last Res_Unit
+    THere are 8 Res_Unit, so far we only replace 2 traditional conv2d layers of DBL in the last Res_Unit
 
     the last Res_Unit = ---> DBL_DCN(Conv2d+BN+LeakyReLU) + DBL_DCN(COnv2d+BN+LeakyReLU)---> Add ----
                          |                                                                    ^
@@ -195,3 +214,5 @@ class DNCv2(nn.Module):
 
     def forward(self, data):
         return self.features(data)
+
+
