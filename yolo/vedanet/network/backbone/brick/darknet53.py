@@ -135,19 +135,37 @@ class SPPBody(nn.Module):
         layer3 = vn_layer.Conv2dBatchLeaky(in_nchannels, half_nchannels, 1, 1)
         layer4 = vn_layer.Conv2dBatchLeaky(half_nchannels, in_nchannels, 3, 1)
         layer5 = vn_layer.Conv2dBatchLeaky(in_nchannels, half_nchannels, 1, 1)
-        layers = [
-            layer1,
-            layer2,
-            layer3,
+        spp5 = nn.MaxPool2d(kernel_size=5, stride=1)
+        spp9 = nn.MaxPool2d(kernel_size=9, stride=1)
+        spp13 = nn.MaxPool2d(kernel_size=13, stride=1)
+
+
+
+        layer_list = [
+            OrderedDict([
+
+                ('1', layer1),
+                ('2', layer2),
+                ('3', layer3),
+            ]),
             
+            OrderedDict([
+                ('maxpool', spp5),
+                ('route', layer3),
+                                
+                
+            ]),
+
+            OrderedDict([
+
+                ('3', layer3),
+                ('4', layer4),
+                ('5', layer5),
+            ]),
             
-            layer3,
-            layer4,
-            layer5
         ]
 
-        self.feature = nn.Sequential(*layers)
-
+        self.feature = nn.ModuleList([nn.Sequential(layer_dict) for layer_dict in layer_list])
 
 
     def forward(self, data):
