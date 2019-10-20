@@ -2,8 +2,8 @@ import os
 from collections import OrderedDict
 import torch
 import torch.nn as nn
-
 from ... import layer as vn_layer
+import math
 
 '''
 DBL = con + BN + LeakyReLU
@@ -130,21 +130,21 @@ class SPPBody(nn.Module):
             vn_layer.Conv2dBatchLeaky(in_nchannels, half_nchannels, 1, 1)
         ]
 
-        self.feature1 = nn.Sequential(*layers1_3)
+        self.DBL3_5 = nn.Sequential(*layers1_3)
 
 
         layer_list = [
-            OrderedDict([
-                ('maxpool', nn.MaxPool2d(kernel_size=13, stride=1)),
-                ('spp1',    vn_layer.SPPLayer(num_levels=3))
+            OrderedDict([                                               # num, c, w, h 
+                ('maxpool', nn.MaxPool2d(kernel_size=5, stride=1)),     # num x 512 x 9 x 9 
+                ('spp1',    vn_layer.SPPLayer(num_levels=3))            # padding 6 + (3 - 1) * (-2) = 2
             ]),
             OrderedDict([
-                ('maxpool', nn.MaxPool2d(kernel_size=9, stride=1)),
-                ('spp2',    vn_layer.SPPLayer(num_levels=2))
+                ('maxpool', nn.MaxPool2d(kernel_size=9, stride=1)),     # num x 512 x 5 x 5
+                ('spp2',    vn_layer.SPPLayer(num_levels=2))            # padding 6 + (2 - 1) * (-2) = 4
             ]),
             OrderedDict([
-                ('maxpool', nn.MaxPool2d(kernel_size=5, stride=1)),
-                ('spp3',    vn_layer.SPPLayer(num_levels=1))
+                ('maxpool', nn.MaxPool2d(kernel_size=13, stride=1)),     # num x 512 x 1 x 1 
+                ('spp3',    vn_layer.SPPLayer(num_levels=1))             # padding 6 + (1 - 1) * (-2) = 6
             ]),
         ]
 
@@ -163,20 +163,18 @@ class SPPBody(nn.Module):
         self.feature = nn.Sequential(*layers3_5)
 
     def forward(self, data):
+        # N, C, W, H = x.size()
+        x = self.DBL3_5(data)
 
-        x = self.feature1(data)
         spp1 = self.layers[0](x)
         spp2 = self.layers[1](x)
         spp3 = self.layers[2](x)
-        
-        spp = torch.cat((spp1, spp2, spp3, x), 1)
+
+        spp = torch.cat((spp3, spp2, spp1, x), 1)  # from C dim cat together 
 
         x = self.feature(spp)
         #x = self.feature(data)
         return x
-
-
-
 
 
 '''
@@ -196,7 +194,7 @@ class DCNv2Block(nn.Module):
     custom_layers = ()
 
     def __init__(self, nchannels):
-        super(DCNv2Block,self).__init__()
+        super(DCNv2Block, self).__init__()
         self.features = nn.Sequential(
             vn_layer.ConvNet(),
             nn.LeakyReLU(0.1),
@@ -206,7 +204,6 @@ class DCNv2Block(nn.Module):
 
     def forward(self, data):
         return data + self.features(data)
-
 
 
 class DCNv2(nn.Module):
@@ -235,5 +232,4 @@ class DCNv2(nn.Module):
 
     def forward(self, data):
         return self.features(data)
-
 
