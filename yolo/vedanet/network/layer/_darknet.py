@@ -9,13 +9,12 @@ import logging as log
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from . import _deformableCNv2 as dcnv2
 
 
 __all__ = ['Conv2dBatchLeaky', 'Conv2dBatch', 'GlobalAvgPool2d', 'PaddedMaxPool2d', 'Reorg', 'SELayer',
-            'CReLU', 'Scale', 'ScaleReLU', 'L2Norm', 'Conv2dL2NormLeaky', 'PPReLU', 'Conv2dBatchPPReLU',
-            'Conv2dBatchPReLU', 'Conv2dBatchPLU', 'Conv2dBatchELU', 'Conv2dBatchSELU',
-            'Shuffle', 'Conv2dBatchReLU', 'SPPLayer', 'DeformConv2', 'DCNv22dBatchReLU']
+           'CReLU', 'Scale', 'ScaleReLU', 'L2Norm', 'Conv2dL2NormLeaky', 'PPReLU', 'Conv2dBatchPPReLU',
+           'Conv2dBatchPReLU', 'Conv2dBatchPLU', 'Conv2dBatchELU', 'Conv2dBatchSELU',
+           'Shuffle', 'Conv2dBatchReLU', 'SPPLayer', 'DeformConv2']
 
 
 class Conv2dBatchLeaky(nn.Module):
@@ -30,6 +29,7 @@ class Conv2dBatchLeaky(nn.Module):
         padding (int or tuple): padding of the convolution
         leaky_slope (number, optional): Controls the angle of the negative slope of the leaky ReLU; Default **0.1**
     """
+
     def __init__(self, in_channels, out_channels, kernel_size, stride, leaky_slope=0.1):
         super(Conv2dBatchLeaky, self).__init__()
 
@@ -39,15 +39,15 @@ class Conv2dBatchLeaky(nn.Module):
         self.kernel_size = kernel_size
         self.stride = stride
         if isinstance(kernel_size, (list, tuple)):
-            self.padding = [int(ii/2) for ii in kernel_size]
+            self.padding = [int(ii / 2) for ii in kernel_size]
         else:
-            self.padding = int(kernel_size/2)
+            self.padding = int(kernel_size / 2)
         self.leaky_slope = leaky_slope
 
         # Layer
         self.layers = nn.Sequential(
             nn.Conv2d(self.in_channels, self.out_channels, self.kernel_size, self.stride, self.padding, bias=False),
-            nn.BatchNorm2d(self.out_channels), #, eps=1e-6, momentum=0.01),
+            nn.BatchNorm2d(self.out_channels),  # , eps=1e-6, momentum=0.01),
             nn.LeakyReLU(self.leaky_slope, inplace=True)
         )
 
@@ -70,14 +70,14 @@ class Conv2dBatchPPReLU(nn.Module):
         self.kernel_size = kernel_size
         self.stride = stride
         if isinstance(kernel_size, (list, tuple)):
-            self.padding = [int(ii/2) for ii in kernel_size]
+            self.padding = [int(ii / 2) for ii in kernel_size]
         else:
-            self.padding = int(kernel_size/2)
+            self.padding = int(kernel_size / 2)
 
         # Layer
         self.layers = nn.Sequential(
             nn.Conv2d(self.in_channels, self.out_channels, self.kernel_size, self.stride, self.padding, bias=False),
-            nn.BatchNorm2d(self.out_channels), #, eps=1e-6, momentum=0.01),
+            nn.BatchNorm2d(self.out_channels),  # , eps=1e-6, momentum=0.01),
             PPReLU(self.out_channels)
         )
 
@@ -100,14 +100,14 @@ class Conv2dBatchPReLU(nn.Module):
         self.kernel_size = kernel_size
         self.stride = stride
         if isinstance(kernel_size, (list, tuple)):
-            self.padding = [int(ii/2) for ii in kernel_size]
+            self.padding = [int(ii / 2) for ii in kernel_size]
         else:
-            self.padding = int(kernel_size/2)
+            self.padding = int(kernel_size / 2)
 
         # Layer
         self.layers = nn.Sequential(
             nn.Conv2d(self.in_channels, self.out_channels, self.kernel_size, self.stride, self.padding, bias=False),
-            nn.BatchNorm2d(self.out_channels), #, eps=1e-6, momentum=0.01),
+            nn.BatchNorm2d(self.out_channels),  # , eps=1e-6, momentum=0.01),
             nn.PReLU(self.out_channels)
         )
 
@@ -130,14 +130,14 @@ class Conv2dBatchPLU(nn.Module):
         self.kernel_size = kernel_size
         self.stride = stride
         if isinstance(kernel_size, (list, tuple)):
-            self.padding = [int(ii/2) for ii in kernel_size]
+            self.padding = [int(ii / 2) for ii in kernel_size]
         else:
-            self.padding = int(kernel_size/2)
+            self.padding = int(kernel_size / 2)
 
         # Layer
         self.layers = nn.Sequential(
             nn.Conv2d(self.in_channels, self.out_channels, self.kernel_size, self.stride, self.padding, bias=False),
-            nn.BatchNorm2d(self.out_channels), #, eps=1e-6, momentum=0.01),
+            nn.BatchNorm2d(self.out_channels),  # , eps=1e-6, momentum=0.01),
             PLU()
         )
 
@@ -159,16 +159,16 @@ class Conv2dBatchELU(nn.Module):
         self.out_channels = out_channels
         self.kernel_size = kernel_size
         self.stride = stride
-        self.padding = int(kernel_size/2)
+        self.padding = int(kernel_size / 2)
         if isinstance(kernel_size, (list, tuple)):
-            self.padding = [int(ii/2) for ii in kernel_size]
+            self.padding = [int(ii / 2) for ii in kernel_size]
         else:
-            self.padding = int(kernel_size/2)
+            self.padding = int(kernel_size / 2)
 
         # Layer
         self.layer = nn.Sequential(
             nn.Conv2d(self.in_channels, self.out_channels, self.kernel_size, self.stride, self.padding, bias=False),
-            nn.BatchNorm2d(self.out_channels), #, eps=1e-6, momentum=0.01),
+            nn.BatchNorm2d(self.out_channels),  # , eps=1e-6, momentum=0.01),
             nn.ELU(inplace=True)
         )
 
@@ -191,14 +191,14 @@ class Conv2dBatchSELU(nn.Module):
         self.kernel_size = kernel_size
         self.stride = stride
         if isinstance(kernel_size, (list, tuple)):
-            self.padding = [int(ii/2) for ii in kernel_size]
+            self.padding = [int(ii / 2) for ii in kernel_size]
         else:
-            self.padding = int(kernel_size/2)
+            self.padding = int(kernel_size / 2)
 
         # Layer
         self.layer = nn.Sequential(
             nn.Conv2d(self.in_channels, self.out_channels, self.kernel_size, self.stride, self.padding, bias=False),
-            nn.BatchNorm2d(self.out_channels), #, eps=1e-6, momentum=0.01),
+            nn.BatchNorm2d(self.out_channels),  # , eps=1e-6, momentum=0.01),
             nn.SELU(inplace=True)
         )
 
@@ -223,6 +223,7 @@ class Conv2dBatch(nn.Module):
         padding (int or tuple): padding of the convolution
         leaky_slope (number, optional): Controls the angle of the negative slope of the leaky ReLU; Default **0.1**
     """
+
     def __init__(self, in_channels, out_channels, kernel_size, stride, leaky_slope=0.1):
         super().__init__()
 
@@ -232,9 +233,9 @@ class Conv2dBatch(nn.Module):
         self.kernel_size = kernel_size
         self.stride = stride
         if isinstance(kernel_size, (list, tuple)):
-            self.padding = [int(ii/2) for ii in kernel_size]
+            self.padding = [int(ii / 2) for ii in kernel_size]
         else:
-            self.padding = int(kernel_size/2)
+            self.padding = int(kernel_size / 2)
         self.leaky_slope = leaky_slope
 
         # Layer
@@ -255,6 +256,7 @@ class Conv2dBatch(nn.Module):
 class GlobalAvgPool2d(nn.Module):
     """ This layer averages each channel to a single number.
     """
+
     def __init__(self):
         super(GlobalAvgPool2d, self).__init__()
 
@@ -277,6 +279,7 @@ class PaddedMaxPool2d(nn.Module):
         padding (tuple, optional): (left, right, top, bottom) padding; Default **None**
         dilation (int or tuple, optional): A parameter that controls the stride of elements in the window
     """
+
     def __init__(self, kernel_size, stride=None, padding=(0, 0, 0, 0), dilation=1):
         super(PaddedMaxPool2d, self).__init__()
         self.kernel_size = kernel_size
@@ -299,6 +302,7 @@ class Reorg(nn.Module):
     Args:
         stride (int): stride to divide the input tensor
     """
+
     def __init__(self, stride=2):
         super(Reorg, self).__init__()
         if not isinstance(stride, int):
@@ -310,7 +314,7 @@ class Reorg(nn.Module):
         return f'{self.__class__.__name__} (stride={self.stride}, darknet_compatible_mode={self.darknet})'
 
     def forward(self, x):
-        assert(x.data.dim() == 4)
+        assert (x.data.dim() == 4)
         B = x.data.size(0)
         C = x.data.size(1)
         H = x.data.size(2)
@@ -323,15 +327,15 @@ class Reorg(nn.Module):
 
         # darknet compatible version from: https://github.com/thtrieu/darkflow/issues/173#issuecomment-296048648
         if self.darknet:
-            x = x.view(B, C//(self.stride**2), H, self.stride, W, self.stride).contiguous()
+            x = x.view(B, C // (self.stride ** 2), H, self.stride, W, self.stride).contiguous()
             x = x.permute(0, 3, 5, 1, 2, 4).contiguous()
-            x = x.view(B, -1, H//self.stride, W//self.stride)
+            x = x.view(B, -1, H // self.stride, W // self.stride)
         else:
             ws, hs = self.stride, self.stride
-            x = x.view(B, C, H//hs, hs, W//ws, ws).transpose(3, 4).contiguous()
-            x = x.view(B, C, H//hs*W//ws, hs*ws).transpose(2, 3).contiguous()
-            x = x.view(B, C, hs*ws, H//hs, W//ws).transpose(1, 2).contiguous()
-            x = x.view(B, hs*ws*C, H//hs, W//ws)
+            x = x.view(B, C, H // hs, hs, W // ws, ws).transpose(3, 4).contiguous()
+            x = x.view(B, C, H // hs * W // ws, hs * ws).transpose(2, 3).contiguous()
+            x = x.view(B, C, hs * ws, H // hs, W // ws).transpose(1, 2).contiguous()
+            x = x.view(B, hs * ws * C, H // hs, W // ws)
 
         return x
 
@@ -341,10 +345,10 @@ class SELayer(nn.Module):
         super(SELayer, self).__init__()
         self.avg_pool = nn.AdaptiveAvgPool2d(1)
         self.fc = nn.Sequential(
-                nn.Linear(nchannels, nchannels // reduction),
-                nn.ReLU(inplace=True),
-                nn.Linear(nchannels // reduction, nchannels),
-                nn.Sigmoid()
+            nn.Linear(nchannels, nchannels // reduction),
+            nn.ReLU(inplace=True),
+            nn.Linear(nchannels // reduction, nchannels),
+            nn.Sigmoid()
         )
         self.nchannels = nchannels
         self.reudction = reduction
@@ -402,7 +406,7 @@ class Scale(nn.Module):
 class ScaleReLU(nn.Module):
     def __init__(self, nchannels):
         super().__init__()
-        self.scale = Scale(nchannels) 
+        self.scale = Scale(nchannels)
         self.relu = nn.ReLU(inplace=True)
         self.nchannels = nchannels
 
@@ -419,8 +423,8 @@ class ScaleReLU(nn.Module):
 class PPReLU(nn.Module):
     def __init__(self, nchannels):
         super().__init__()
-        self.scale1 = Scale(nchannels, bias=False, init_scale=1.0) 
-        self.scale2 = Scale(nchannels, bias=False, init_scale=0.1) 
+        self.scale1 = Scale(nchannels, bias=False, init_scale=1.0)
+        self.scale2 = Scale(nchannels, bias=False, init_scale=0.1)
         self.nchannels = nchannels
 
     def forward(self, x):
@@ -439,14 +443,15 @@ class PLU(nn.Module):
     y = max(alpha*(x+c)−c, min(alpha*(x−c)+c, x))
     from PLU: The Piecewise Linear Unit Activation Function
     """
+
     def __init__(self, alpha=0.1, c=1):
         super().__init__()
         self.alpha = alpha
         self.c = c
 
     def forward(self, x):
-        x1 = self.alpha*(x + self.c) - self.c
-        x2 = self.alpha*(x - self.c) + self.c
+        x1 = self.alpha * (x + self.c) - self.c
+        x2 = self.alpha * (x - self.c) + self.c
         min1 = torch.min(x2, x)
         min2 = torch.max(x1, min1)
         return min2
@@ -459,10 +464,10 @@ class PLU(nn.Module):
 class CReLU(nn.Module):
     def __init__(self, nchannels):
         super().__init__()
-        self.scale = Scale(2*nchannels) 
+        self.scale = Scale(2 * nchannels)
         self.relu = nn.ReLU(inplace=True)
         self.in_channels = nchannels
-        self.out_channels = 2*nchannels
+        self.out_channels = 2 * nchannels
 
     def forward(self, x):
         x1 = torch.cat((x, -x), 1)
@@ -478,13 +483,13 @@ class CReLU(nn.Module):
 class L2Norm(nn.Module):
     def __init__(self, nchannels, bias=True):
         super().__init__()
-        self.scale = Scale(nchannels, bias=bias) 
+        self.scale = Scale(nchannels, bias=bias)
         self.nchannels = nchannels
         self.eps = 1e-6
 
     def forward(self, x):
-        #norm = x.pow(2).sum(dim=1, keepdim=True).sqrt()+self.eps
-        #x = torch.div(x,norm)
+        # norm = x.pow(2).sum(dim=1, keepdim=True).sqrt()+self.eps
+        # x = torch.div(x,norm)
         l2_norm = x.norm(2, dim=1, keepdim=True) + self.eps
         x_norm = x.div(l2_norm)
         y = self.scale(x_norm)
@@ -507,6 +512,7 @@ class Conv2dL2NormLeaky(nn.Module):
         padding (int or tuple): padding of the convolution
         leaky_slope (number, optional): Controls the angle of the negative slope of the leaky ReLU; Default **0.1**
     """
+
     def __init__(self, in_channels, out_channels, kernel_size, stride, leaky_slope=0.1, bias=True):
         super().__init__()
 
@@ -516,9 +522,9 @@ class Conv2dL2NormLeaky(nn.Module):
         self.kernel_size = kernel_size
         self.stride = stride
         if isinstance(kernel_size, (list, tuple)):
-            self.padding = [int(ii/2) for ii in kernel_size]
+            self.padding = [int(ii / 2) for ii in kernel_size]
         else:
-            self.padding = int(kernel_size/2)
+            self.padding = int(kernel_size / 2)
         self.leaky_slope = leaky_slope
 
         # Layer
@@ -549,11 +555,12 @@ class Shuffle(nn.Module):
         """
         N, C, H, W = x.size()
         g = self.groups
-        return x.view(N, g, C/g, H, W).permute(0, 2, 1, 3, 4).contiguous().view(N, C, H, W)
+        return x.view(N, g, C / g, H, W).permute(0, 2, 1, 3, 4).contiguous().view(N, C, H, W)
 
     def __repr__(self):
         s = '{name} (groups={groups})'
         return s.format(name=self.__class__.__name__, **self.__dict__)
+
 
 # mobilenet
 class Conv2dBatchReLU(nn.Module):
@@ -567,6 +574,7 @@ class Conv2dBatchReLU(nn.Module):
         stride (int or tuple): Stride of the convolution
         padding (int or tuple): padding of the convolution
     """
+
     def __init__(self, in_channels, out_channels, kernel_size, stride):
         super(Conv2dBatchReLU, self).__init__()
 
@@ -576,9 +584,9 @@ class Conv2dBatchReLU(nn.Module):
         self.kernel_size = kernel_size
         self.stride = stride
         if isinstance(kernel_size, (list, tuple)):
-            self.padding = [int(ii/2) for ii in kernel_size]
+            self.padding = [int(ii / 2) for ii in kernel_size]
         else:
-            self.padding = int(kernel_size/2)
+            self.padding = int(kernel_size / 2)
 
         # Layer
         self.layers = nn.Sequential(
@@ -596,16 +604,13 @@ class Conv2dBatchReLU(nn.Module):
         return x
 
 
+
 class SPPLayer(torch.nn.Module):
 
-    
-class SPPLayer(torch.nn.Module):
-
-    def __init__(self, num_levels, pool_type='max_pool'):
+    def __init__(self, level):
         super(SPPLayer, self).__init__()
 
-        self.num_levels = num_levels  # 4 target = [num, 13 x 13 x 2048]
-        self.pool_type = pool_type
+        self.level = level      # 4 target = [num, 13 x 13 x 2048]
 
     def forward(self, x):
         # num:样本数量 c:通道数 h:高 w:宽
@@ -614,11 +619,11 @@ class SPPLayer(torch.nn.Module):
         # h: height
         # w: width
         n, c, h, w = x.size()
-        #         print(x.size())
-        a = (self.num_levels -1) * 2
+        #print('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!11', x.size())
+        a = 6 + (self.level - 1) * (-2)
         zero_pad = torch.nn.ZeroPad2d((a, a, a, a))
         x = zero_pad(x)
-        
+
         return x
 
 
@@ -636,13 +641,13 @@ class DeformConv2(nn.Module):
         self.zero_padding = nn.ZeroPad2d(padding)
         self.conv = nn.Conv2d(in_channels, out_channels, kernel_size=kernel_size, stride=kernel_size, bias=bias)
 
-        self.p_conv = nn.Conv2d(in_channels, 2*kernel_size*kernel_size, kernel_size=3, padding=1, stride=stride)
+        self.p_conv = nn.Conv2d(in_channels, 2 * kernel_size * kernel_size, kernel_size=3, padding=1, stride=stride)
         nn.init.constant_(self.p_conv.weight, 0)
         self.p_conv.register_backward_hook(self._set_lr)
 
         self.modulation = modulation
         if modulation:
-            self.m_conv = nn.Conv2d(in_channels, kernel_size*kernel_size, kernel_size=3, padding=1, stride=stride)
+            self.m_conv = nn.Conv2d(in_channels, kernel_size * kernel_size, kernel_size=3, padding=1, stride=stride)
             nn.init.constant_(self.m_conv.weight, 0)
             self.m_conv.register_backward_hook(self._set_lr)
 
@@ -671,13 +676,15 @@ class DeformConv2(nn.Module):
         q_lt = p.detach().floor()
         q_rb = q_lt + 1
 
-        q_lt = torch.cat([torch.clamp(q_lt[..., :N], 0, x.size(2)-1), torch.clamp(q_lt[..., N:], 0, x.size(3)-1)], dim=-1).long()
-        q_rb = torch.cat([torch.clamp(q_rb[..., :N], 0, x.size(2)-1), torch.clamp(q_rb[..., N:], 0, x.size(3)-1)], dim=-1).long()
+        q_lt = torch.cat([torch.clamp(q_lt[..., :N], 0, x.size(2) - 1), torch.clamp(q_lt[..., N:], 0, x.size(3) - 1)],
+                         dim=-1).long()
+        q_rb = torch.cat([torch.clamp(q_rb[..., :N], 0, x.size(2) - 1), torch.clamp(q_rb[..., N:], 0, x.size(3) - 1)],
+                         dim=-1).long()
         q_lb = torch.cat([q_lt[..., :N], q_rb[..., N:]], dim=-1)
         q_rt = torch.cat([q_rb[..., :N], q_lt[..., N:]], dim=-1)
 
         # clip p
-        p = torch.cat([torch.clamp(p[..., :N], 0, x.size(2)-1), torch.clamp(p[..., N:], 0, x.size(3)-1)], dim=-1)
+        p = torch.cat([torch.clamp(p[..., :N], 0, x.size(2) - 1), torch.clamp(p[..., N:], 0, x.size(3) - 1)], dim=-1)
 
         # bilinear kernel (b, h, w, N)
         g_lt = (1 + (q_lt[..., :N].type_as(p) - p[..., :N])) * (1 + (q_lt[..., N:].type_as(p) - p[..., N:]))
@@ -711,18 +718,18 @@ class DeformConv2(nn.Module):
 
     def _get_p_n(self, N, dtype):
         p_n_x, p_n_y = torch.meshgrid(
-            torch.arange(-(self.kernel_size-1)//2, (self.kernel_size-1)//2+1),
-            torch.arange(-(self.kernel_size-1)//2, (self.kernel_size-1)//2+1))
+            torch.arange(-(self.kernel_size - 1) // 2, (self.kernel_size - 1) // 2 + 1),
+            torch.arange(-(self.kernel_size - 1) // 2, (self.kernel_size - 1) // 2 + 1))
         # (2N, 1)
         p_n = torch.cat([torch.flatten(p_n_x), torch.flatten(p_n_y)], 0)
-        p_n = p_n.view(1, 2*N, 1, 1).type(dtype)
+        p_n = p_n.view(1, 2 * N, 1, 1).type(dtype)
 
         return p_n
 
     def _get_p_0(self, h, w, N, dtype):
         p_0_x, p_0_y = torch.meshgrid(
-            torch.arange(1, h*self.stride+1, self.stride),
-            torch.arange(1, w*self.stride+1, self.stride))
+            torch.arange(1, h * self.stride + 1, self.stride),
+            torch.arange(1, w * self.stride + 1, self.stride))
         p_0_x = torch.flatten(p_0_x).view(1, 1, h, w).repeat(1, N, 1, 1)
         p_0_y = torch.flatten(p_0_y).view(1, 1, h, w).repeat(1, N, 1, 1)
         p_0 = torch.cat([p_0_x, p_0_y], 1).type(dtype)
@@ -730,7 +737,7 @@ class DeformConv2(nn.Module):
         return p_0
 
     def _get_p(self, offset, dtype):
-        N, h, w = offset.size(1)//2, offset.size(2), offset.size(3)
+        N, h, w = offset.size(1) // 2, offset.size(2), offset.size(3)
 
         # (1, 2N, 1, 1)
         p_n = self._get_p_n(N, dtype)
@@ -747,7 +754,7 @@ class DeformConv2(nn.Module):
         x = x.contiguous().view(b, c, -1)
 
         # (b, h, w, N)
-        index = q[..., :N]*padded_w + q[..., N:]  # offset_x*w + offset_y
+        index = q[..., :N] * padded_w + q[..., N:]  # offset_x*w + offset_y
         # (b, c, h*w*N)
         index = index.contiguous().unsqueeze(dim=1).expand(-1, c, -1, -1, -1).contiguous().view(b, c, -1)
 
@@ -758,25 +765,12 @@ class DeformConv2(nn.Module):
     @staticmethod
     def _reshape_x_offset(x_offset, ks):
         b, c, h, w, N = x_offset.size()
-        x_offset = torch.cat([x_offset[..., s:s+ks].contiguous().view(b, c, h, w*ks) for s in range(0, N, ks)], dim=-1)
-        x_offset = x_offset.contiguous().view(b, c, h*ks, w*ks)
+        x_offset = torch.cat([x_offset[..., s:s + ks].contiguous().view(b, c, h, w * ks) for s in range(0, N, ks)],
+                             dim=-1)
+        x_offset = x_offset.contiguous().view(b, c, h * ks, w * ks)
 
         return x_offset
 
-class DCNv22dBatchReLU(nn.Module):
-    def __init__(self, in_channels, out_channels, kernel_size, stride):
-        super(DCNv22dBatchReLU, self).__init__()
 
-        # Parameters
-        self.in_channels = in_channels
-        self.out_channels = out_channels
-        self.kernel_size = kernel_size
-        self.stride = stride
-
-        self.layers = dcnv2.deformableCNv2
-
-    def forward(self, x):
-        x = self.layers(x)
-        return x
 
 
