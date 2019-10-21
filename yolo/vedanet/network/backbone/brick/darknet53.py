@@ -168,9 +168,9 @@ class SPPBody(nn.Module):
 
         spp1 = self.layers[0](x)
         spp2 = self.layers[1](x)
-        spp3 = self.layers[2](x)
+        #spp3 = self.layers[2](x)
 
-        spp = torch.cat((spp3, spp2, spp1, x), 1)  # from C dim cat together 
+        spp = torch.cat((x, spp2, spp1, x), 1)  # from C dim cat together 
 
         x = self.feature(spp)
         #x = self.feature(data)
