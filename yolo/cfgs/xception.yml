@@ -1,0 +1,59 @@
+output_root: "outputs"
+output_version: "baseline"
+backup_name: "weights"
+log_name: "logs"
+
+labels: ["small-vehicle",
+         "large-vehicle",
+         "ship"]
+
+data_root_dir: "/home/dingjin/Yolov3_DOTA/yolo/vehicle_ship/onedet_cache"
+
+train:
+    dataset: "train"
+    stdout: True
+    gpus: "2"
+    nworkers: 16
+    pin_mem: True
+
+    momentum: 0.9
+    decay: 0.0005
+
+    clear: False
+
+    warmup_lr: 0.0001
+    lr_steps: [400,700,900,1000, 40000,60000]
+    lr_rates: [0.0005,0.001,0.002,0.02, 0.002,0.0002]
+    max_batches: 80200
+    resize_interval: 10
+
+    backup_interval: 200
+    backup_steps: [1000]
+    backup_rates: [10000]
+
+    input_shape: [608, 608]
+    batch_size: 8
+    mini_batch_size: 6
+    weights: ~
+
+test:
+    dataset: "test"
+    stdout: True
+    gpus: "0"
+    nworkers: 8
+    pin_mem: True
+
+    input_shape: [800, 800]
+    batch_size: 8
+    weights: "/home/dingjin/Yolov3_DOTA/yolo/outputs/Xception/baseline/weights/final.dw"
+
+    conf_thresh: 0.05
+    nms_thresh: 0.3
+
+    results: "results/RegionXception_vehicle_ship_1024"
+
+speed:
+    gpus: "7"
+    batch_size: 1
+    max_iters: 200
+    input_shape: [544, 544]
