@@ -189,7 +189,7 @@ class DCNv2Block(nn.Module):
     Res_Unit = ---> DBL + DBL ---> Add ----
                 |                   ^
                 |___________________|
-
+    need to be modified including add DCNv2(pytorch 0.4.0) into networks
     '''
     custom_layers = ()
 
@@ -225,9 +225,10 @@ class DCNv2(nn.Module):
         super().__init__()
         blocks = []
         blocks.append(vn_layer.Conv2dBatchLeaky(nchannels, 2 * nchannels, 3, stride))
-        for ii in range(nblocks - 2):
+        for ii in range(nblocks - 3):
             blocks.append(StageBlock(2 * nchannels))
-        blocks.append(DCNv2Block(nchannels))
+        blocks.append(DCNv2Block(2 * nchannels))
+        blocks.append(DCNv2Block(2 * nchannels))
         self.features = nn.Sequential(*blocks)
 
     def forward(self, data):
